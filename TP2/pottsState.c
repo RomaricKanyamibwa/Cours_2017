@@ -30,7 +30,7 @@ PottsState* Potts_create(unsigned int q0,unsigned size0,double beta)
             s[i]=size0/q0;
             printf("s[%d]=%d\n",i,s[i]);
         }
-        s[q0-1]=size0-size0/q0;
+        s[q0-1]=size0-i*size0/q0;
         printf("s[%d]=%d\n",i,s[i]);
 
     }
@@ -63,10 +63,8 @@ void PottsMC_free(PottsMC* X)
     free(X);
 }
 
-unsigned int PottsMC_update(PottsMC*X)
+unsigned int PottsMC_update(PottsMC*X,gsl_rng * G)
 {
-    gsl_rng * G= gsl_rng_alloc(gsl_rng_mt19937);
-    gsl_rng_set(G,time(NULL));
     //choix de l'individu
     int indiv=gsl_rng_uniform_int (G,X->x->M);
     int k=0,s=0;
@@ -80,23 +78,23 @@ unsigned int PottsMC_update(PottsMC*X)
     // choix de la nouvelle couleur
     int l=gsl_rng_uniform_int (G,X->x->q);
     int Nk=X->x->state[k],Nl=X->x->state[l];
-    double pi_yx=exp(0-X->beta*(Nl-Nk+1));
+    double pi_yx=exp(-X->beta*(Nl-Nk+1));
     printf("Nk=%d\n",Nk);
     printf("Nl=%d\n",Nl);
     //Acceptation ou refus de la configuration
     if(pi_yx>1)
     {
-        X->x->state[k]=Nk-1;
-        X->x->state[l]=Nl+1;
+        X->x->state[k]--;
+        X->x->state[l]++;
         X->n++;
         return 1;
     }else
     {
         double u=gsl_rng_uniform(G);
-        if(u<pi_yx)
+        if(pi_yx>=u)
         {
-            X->x->state[k]=Nk-1;
-            X->x->state[l]=Nl+1;
+            X->x->state[k]--;
+            X->x->state[l]++;
             X->n++;
             return 1;
         }
@@ -122,7 +120,7 @@ int main(void)
     int i,j,n=10000;
     for(i=0;i<n;i++)
     {
-        if(PottsMC_update(X))
+        if(PottsMC_update(X,G))
         {
             fprintf(fp, "%d ",X->n);
             for(j=0;j<X->x->q;j++)

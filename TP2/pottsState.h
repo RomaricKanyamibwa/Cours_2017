@@ -27,7 +27,7 @@ unsigned Potts_state_statistic(PottsState*X,unsigned state);
 
 //PottsMC
 PottsMC * PottsMC_allocate(unsigned q,unsigned size0,double beta);
-unsigned PottsMC_update(PottsMC *X);
+unsigned PottsMC_update(PottsMC *X,gsl_rng * G);
 void PottsMC_free(PottsMC *);
 
 #endif // POTTSSTATE_H_INCLUDED
